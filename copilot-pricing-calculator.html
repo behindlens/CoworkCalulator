@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copilot Pricing Calculator</title>
+<style>
+  :root{
+    --bg:#fafafa;
+    --surface:#ffffff;
+    --border:#e8e8e8;
+    --text:#1a1a1a;
+    --muted:#767676;
+    --accent:#4f46e5;
+    --accent-light:#eef0ff;
+    --good:#0a7a4d;
+    --radius:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans Thai","Sarabun",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+  }
+  .page{
+    max-width:980px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+  }
+  header.hero{
+    text-align:center;
+    margin-bottom:36px;
+  }
+  header.hero h1{
+    font-size:30px;
+    font-weight:650;
+    letter-spacing:-0.02em;
+    margin:0 0 10px;
+  }
+  header.hero p.subtitle{
+    color:var(--muted);
+    font-size:15px;
+    max-width:600px;
+    margin:0 auto;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-bottom:24px;
+  }
+  .fx-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:14px;
+    padding:18px 28px;
+  }
+  .fx-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+    width:100%;
+  }
+  .fx-row label{
+    font-weight:600;
+    font-size:14px;
+    white-space:nowrap;
+  }
+  .fx-input-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent-light);
+    border-radius:10px;
+    padding:6px 12px;
+  }
+  .fx-input-wrap span{
+    font-size:14px;
+    color:var(--text);
+  }
+  .fx-input-wrap input{
+    width:80px;
+    border:none;
+    background:transparent;
+    font-size:15px;
+    font-weight:650;
+    color:var(--accent);
+    text-align:right;
+  }
+  .fx-input-wrap input:focus{ outline:none; }
+  .fx-note{
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+    margin-bottom:20px;
+    border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    appearance:none;
+    border:none;
+    background:transparent;
+    padding:12px 18px;
+    font-size:15px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tab-btn.active{
+    color:var(--accent);
+    border-bottom-color:var(--accent);
+  }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  h2.section-title{
+    font-size:19px;
+    font-weight:650;
+    margin:0 0 4px;
+  }
+  p.section-desc{
+    color:var(--muted);
+    font-size:13.5px;
+    margin:0 0 22px;
+  }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:18px;
+    margin-bottom:22px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .field label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .field input, .field select{
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:9px 11px;
+    font-size:14.5px;
+    color:var(--text);
+    background:#fff;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+
+  table.tier-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:8px;
+    font-size:13.5px;
+  }
+  table.tier-table th{
+    text-align:left;
+    color:var(--muted);
+    font-weight:600;
+    font-size:12.5px;
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  table.tier-table td{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  table.tier-table input{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:7px 8px;
+    font-size:13.5px;
+  }
+  table.tier-table input:focus{ outline:none; border-color:var(--accent); }
+
+  .results{
+    background:var(--accent-light);
+    border-radius:12px;
+    padding:18px 22px;
+    margin-top:6px;
+  }
+  .results .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:7px 0;
+    font-size:14px;
+  }
+  .results .row + .row{ border-top:1px dashed #d9ddf7; }
+  .results .row .label{ color:var(--muted); }
+  .results .row .value{ font-weight:650; text-align:right; }
+  .results .row.total .value{ color:var(--accent); font-size:16px; }
+
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+    font-size:14px;
+  }
+  .toggle-row input[type=checkbox]{
+    width:18px; height:18px;
+  }
+  .free-note{
+    display:none;
+    background:#eafaf1;
+    border:1px solid #c6ecd6;
+    color:var(--good);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13px;
+    margin-bottom:16px;
+  }
+
+  table.studio-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    margin-bottom:18px;
+  }
+  table.studio-table thead th{
+    text-align:left;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--muted);
+    font-weight:650;
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  table.studio-table tbody td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  table.studio-table tbody tr:hover{ background:#fbfbfd; }
+  table.studio-table .feat-name{ font-weight:650; }
+  table.studio-table .feat-desc{ color:var(--muted); font-size:11.5px; }
+  table.studio-table .feat-unit{ color:var(--muted); white-space:nowrap; }
+  table.studio-table input.qty-input{
+    width:100px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 8px;
+    font-size:13px;
+    text-align:right;
+  }
+  table.studio-table input.qty-input:focus{ outline:none; border-color:var(--accent); }
+  table.studio-table tfoot td{
+    padding:12px 10px;
+    font-weight:700;
+    border-top:2px solid var(--text);
+    font-size:13.5px;
+  }
+  .num{ text-align:right; white-space:nowrap; }
+
+  .formula-box{
+    background:#fff;
+    border:1px dashed var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:22px;
+  }
+  .formula-box code{
+    background:var(--accent-light);
+    color:var(--accent);
+    padding:2px 6px;
+    border-radius:6px;
+    font-size:12.5px;
+  }
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:var(--accent);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    padding:0;
+  }
+  .reset-link.secondary{
+    color:var(--muted);
+  }
+  .head-actions{
+    display:flex;
+    gap:16px;
+    white-space:nowrap;
+  }
+  .section-head-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:4px;
+  }
+  .assumption-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .assumption-row input.tpt-input{
+    width:64px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:4px 6px;
+    font-size:11.5px;
+    text-align:right;
+  }
+  .assumption-row input.tpt-input:focus{ outline:none; border-color:var(--accent); }
+  .tier-info{
+    margin-top:14px;
+  }
+  .tier-info strong{ color:var(--text); }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    margin-top:36px;
+    line-height:1.7;
+  }
+
+  @media (max-width:640px){
+    .page{ padding:32px 14px 60px; }
+    header.hero h1{ font-size:24px; }
+    table.studio-table{ font-size:12px; }
+    table.studio-table input.qty-input{ width:80px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <h1>Copilot Pricing Calculator</h1>
+    <p class="subtitle">คำนวณค่าใช้จ่ายโดยประมาณของ Microsoft Copilot Cowork และ Copilot Studio (Token-based Billing) — ปรับอัตราแลกเปลี่ยนได้เอง</p>
+  </header>
+
+  <section class="fx-bar card">
+    <div class="fx-row">
+      <label for="fxRate">อัตราแลกเปลี่ยน</label>
+      <div class="fx-input-wrap">
+        <span>1 USD =</span>
+        <input type="number" id="fxRate" value="33.40" step="0.01" min="0">
+        <span>บาท</span>
+      </div>
+      <span class="fx-note">ปรับให้ตรงกับอัตราจริง ณ วันที่คำนวณ — ค่าเริ่มต้นอ้างอิงจาก USD/THB โดยประมาณ มิ.ย. 2026</span>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="cowork">Copilot Cowork</button>
+    <button class="tab-btn" data-tab="studio">Copilot Studio (Token-based)</button>
+  </nav>
+
+  <!-- ===================== COPILOT COWORK ===================== -->
+  <section id="cowork" class="tab-panel active">
+
+    <div class="card">
+      <div class="section-head-row">
+        <div>
+          <h2 class="section-title">License พื้นฐาน</h2>
+          <p class="section-desc">Copilot Cowork ต้องมี Microsoft 365 Copilot User Subscription License ก่อนจึงใช้งานได้</p>
+        </div>
+        <button class="reset-link" onclick="resetCowork()">ใช้ค่าเริ่มต้น</button>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="coworkUsers">จำนวนผู้ใช้ที่มี license</label>
+          <input type="number" id="coworkUsers" value="1" min="0">
+        </div>
+        <div class="field">
+          <label for="coworkLicensePrice">ราคา license ต่อ user/เดือน (USD)</label>
+          <input type="number" id="coworkLicensePrice" value="30" min="0" step="0.5">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">การใช้งานแบบ Usage-based (Copilot Credit)</h2>
+      <p class="section-desc">1 Copilot Credit = $0.01 — ต้นทุนต่องานแบ่งตามความซับซ้อน (โมเดลที่ใช้ / context ที่ดึง / จำนวน tool ที่เรียก / เวลาที่รัน) ใส่ช่วงต้นทุนต่องาน (USD) และจำนวนงานต่อเดือนของแต่ละระดับ</p>
+
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>ระดับงาน</th>
+            <th style="width:110px;">ต่ำสุด (USD)</th>
+            <th style="width:110px;">สูงสุด (USD)</th>
+            <th style="width:130px;">จำนวนงาน/เดือน</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>งานเบา (light)</td>
+            <td><input type="number" id="lightMin" value="1" min="0" step="0.5"></td>
+            <td><input type="number" id="lightMax" value="3" min="0" step="0.5"></td>
+            <td><input type="number" id="lightCount" value="50" min="0"></td>
+          </tr>
+          <tr>
+            <td>งานปานกลาง (medium)</td>
+            <td><input type="number" id="mediumMin" value="4" min="0" step="0.5"></td>
+            <td><input type="number" id="mediumMax" value="7" min="0" step="0.5"></td>
+            <td><input type="number" id="mediumCount" value="20" min="0"></td>
+          </tr>
+          <tr>
+            <td>งานหนัก (heavy)</td>
+            <td><input type="number" id="heavyMin" value="7" min="0" step="0.5"></td>
+            <td><input type="number" id="heavyMax" value="15" min="0" step="0.5"></td>
+            <td><input type="number" id="heavyCount" value="5" min="0"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="formula-box tier-info">
+        <strong>เกณฑ์การแบ่งระดับงาน (อ้างอิงแนวทางของ Microsoft):</strong> ต้นทุนต่องานของ Copilot Cowork ขึ้นกับ 4 ปัจจัยหลักร่วมกัน คือ (1) โมเดลที่ agent เลือกใช้ตอบ (เล็ก/กลาง/reasoning) (2) ปริมาณ context จากองค์กรที่ต้องดึงมาอ้างอิง เช่น ไฟล์ อีเมล แชท (3) จำนวน tool/connector ที่ถูกเรียกใช้ในงานนั้น และ (4) เวลา/จำนวนขั้นตอนที่ agent ใช้จนงานเสร็จ
+        <br><br>
+        <strong>งานเบา (light, $1–3):</strong> ใช้โมเดลพื้นฐาน ไม่ต้องดึง context จากหลายแหล่ง ทำเสร็จในขั้นตอนเดียวหรือไม่กี่ขั้นตอน เช่น สรุปอีเมล/ข้อความสั้น ตอบคำถามทั่วไป แก้ไข-ขัดเกลาข้อความ แปลภาษาสั้นๆ
+        <br>
+        <strong>งานปานกลาง (medium, $4–7):</strong> ต้องดึงข้อมูลจากหลายแหล่งในองค์กร (ไฟล์ อีเมล Teams) และ/หรือเรียก tool 2–3 ตัวร่วมกัน เช่น วิเคราะห์ไฟล์ Excel ขนาดกลาง สร้าง draft สไลด์/เอกสาร ค้นหาและสรุปข้อมูลจากหลายเอกสาร
+        <br>
+        <strong>งานหนัก (heavy, $7+):</strong> งานแบบ multi-step ที่ต้องใช้ reasoning เชิงลึก เรียก tool หลายตัวหลายรอบ หรือ orchestrate การทำงานข้าม agent เช่น จัดทำรายงานฉบับเต็มจากหลายแหล่งข้อมูล งานวิจัยเชิงลึก (deep research) หรือสร้าง workflow อัตโนมัติที่ซับซ้อนหลายขั้นตอน
+      </div>
+
+      <div class="results">
+        <div class="row">
+          <span class="label">ค่า License (Users × ราคา/เดือน)</span>
+          <span class="value" id="coworkLicenseOut">–</span>
+        </div>
+        <div class="row">
+          <span class="label">ค่าใช้งาน Credit (ช่วงต่ำ–สูง)</span>
+          <span class="value" id="coworkTaskOut">–</span>
+        </div>
+        <div class="row">
+          <span class="label">ประมาณการเฉลี่ยต่อเดือน</span>
+          <span class="value" id="coworkAvgOut">–</span>
+        </div>
+        <div class="row total">
+          <span class="label">รวมทั้งหมดต่อเดือน (ช่วงต่ำ–สูง)</span>
+          <span class="value" id="coworkTotalOut">–</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COPILOT STUDIO ===================== -->
+  <section id="studio" class="tab-panel">
+
+    <div class="card">
+      <div class="section-head-row">
+        <div>
+          <h2 class="section-title">ตั้งค่าการซื้อ Copilot Credit</h2>
+          <p class="section-desc">เลือกวิธีจ่ายเงินของ Copilot Studio และระบุว่าผู้ใช้งานมี M365 Copilot license หรือไม่</p>
+        </div>
+        <button class="reset-link" onclick="resetStudio()">ใช้ค่าเริ่มต้น</button>
+      </div>
+
+      <div class="toggle-row">
+        <input type="checkbox" id="studioLicensed">
+        <label for="studioLicensed">ผู้ใช้งานมี Microsoft 365 Copilot license (ใช้ผ่าน M365 Copilot Chat / Teams / SharePoint ด้วย identity ของตนเอง) → ไม่หัก Credit</label>
+      </div>
+      <div class="free-note" id="studioFreeNote">การใช้งานทั้งหมดด้านล่างถูกรวมอยู่ใน Microsoft 365 Copilot license แล้ว (ภายใต้ fair-use limit) จึงไม่มีการหัก Copilot Credit เพิ่ม</div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="studioPurchase">วิธีซื้อ Copilot Credit</label>
+          <select id="studioPurchase">
+            <option value="payg" selected>Pay-as-you-go — $0.01 / credit</option>
+            <option value="prepaid">Prepaid pack — $200 / 25,000 credits ($0.008/credit)</option>
+            <option value="custom">กำหนดราคาเอง</option>
+          </select>
+        </div>
+        <div class="field" id="customPriceField" style="display:none;">
+          <label for="studioCustomPrice">ราคาต่อ Credit (USD)</label>
+          <input type="number" id="studioCustomPrice" value="0.01" min="0" step="0.001">
+        </div>
+        <div class="field">
+          <label>ราคาที่ใช้คำนวณ</label>
+          <input type="text" id="studioCreditPriceOut" value="" disabled style="color:var(--accent);font-weight:650;">
+        </div>
+      </div>
+
+      <div class="formula-box">
+        วิธีคิด Copilot Credit: <code>Credits = (จำนวนใช้งาน ÷ หน่วยฐาน) × Rate</code><br>
+        สำหรับแถว AI tool: <code>Tokens = จำนวนงาน/เดือน × สมมติฐาน tokens/งาน</code> (ปรับสมมติฐานได้ต่อแถว) แล้วนำ Tokens ไปแทนค่า "จำนวนใช้งาน" ในสูตรด้านบน<br>
+        แปลงเป็นเงิน: <code>Cost (USD) = Credits × ราคา/Credit</code> → <code>Cost (THB) = Cost (USD) × อัตราแลกเปลี่ยน</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head-row">
+        <div>
+          <h2 class="section-title">ตารางอัตราคิด Copilot Credit ต่อ Feature</h2>
+          <p class="section-desc">ใส่ปริมาณการใช้งานต่อเดือนของแต่ละ feature เพื่อดูจำนวน Credit และค่าใช้จ่ายที่เกิดขึ้นจริง — แถว AI tool ใส่เป็น "จำนวนงาน/เดือน" แล้วระบบแปลงเป็น token ให้อัตโนมัติ</p>
+        </div>
+        <div class="head-actions">
+          <button class="reset-link secondary" onclick="clearStudioQuantities()">ล้างปริมาณ/เดือนทั้งหมด</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+      <table class="studio-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>หน่วยคิดเงิน</th>
+            <th class="num">Rate (Credit)</th>
+            <th>ปริมาณ/เดือน</th>
+            <th class="num">Tokens ที่ใช้ (ประมาณ)</th>
+            <th class="num">Credits</th>
+            <th class="num">USD</th>
+            <th class="num">THB</th>
+          </tr>
+        </thead>
+        <tbody id="studioTableBody"><!-- generated by JS --></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">รวมทั้งหมดต่อเดือน</td>
+            <td class="num" id="studioTotalCredits">–</td>
+            <td class="num" id="studioTotalUSD">–</td>
+            <td class="num" id="studioTotalTHB">–</td>
+          </tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    อัตราอ้างอิงจาก Microsoft Learn / Azure Pricing สำหรับ Copilot Cowork และ Copilot Studio (มิ.ย. 2026)<br>
+    ใช้เพื่อประมาณการเบื้องต้นเท่านั้น ราคาจริงอาจเปลี่ยนแปลงตามสัญญา ภูมิภาค และอัตราแลกเปลี่ยน ณ วันที่เรียกเก็บเงินจริง
+  </footer>
+
+</div>
+
+<script>
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- Formatting helpers ----------
+  function fmtUSD(n){
+    if(!isFinite(n)) n=0;
+    return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function fmtTHB(n){
+    if(!isFinite(n)) n=0;
+    return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' บาท';
+  }
+  function fmtNum(n,d){
+    if(!isFinite(n)) n=0;
+    return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:d===undefined?1:d});
+  }
+  function getFx(){
+    return parseFloat(document.getElementById('fxRate').value) || 0;
+  }
+
+  // ---------- Copilot Cowork defaults & calc ----------
+  const coworkDefaults = {
+    coworkUsers:1, coworkLicensePrice:30,
+    lightMin:1, lightMax:3, lightCount:50,
+    mediumMin:4, mediumMax:7, mediumCount:20,
+    heavyMin:7, heavyMax:15, heavyCount:5
+  };
+  function resetCowork(){
+    Object.keys(coworkDefaults).forEach(id=>{
+      document.getElementById(id).value = coworkDefaults[id];
+    });
+    renderAll();
+  }
+  function calcCowork(){
+    const fx = getFx();
+    const users = parseFloat(document.getElementById('coworkUsers').value)||0;
+    const licensePrice = parseFloat(document.getElementById('coworkLicensePrice').value)||0;
+    const licenseUSD = users * licensePrice;
+
+    let lowUSD = 0, highUSD = 0;
+    ['light','medium','heavy'].forEach(t=>{
+      const min = parseFloat(document.getElementById(t+'Min').value)||0;
+      const max = parseFloat(document.getElementById(t+'Max').value)||0;
+      const count = parseFloat(document.getElementById(t+'Count').value)||0;
+      lowUSD += min*count;
+      highUSD += max*count;
+    });
+
+    const totalLow = licenseUSD + lowUSD;
+    const totalHigh = licenseUSD + highUSD;
+    const avgTotal = licenseUSD + (lowUSD+highUSD)/2;
+
+    document.getElementById('coworkLicenseOut').textContent =
+      fmtUSD(licenseUSD) + '  (' + fmtTHB(licenseUSD*fx) + ')';
+    document.getElementById('coworkTaskOut').textContent =
+      fmtUSD(lowUSD) + ' – ' + fmtUSD(highUSD) + '  (' + fmtTHB(lowUSD*fx) + ' – ' + fmtTHB(highUSD*fx) + ')';
+    document.getElementById('coworkAvgOut').textContent =
+      fmtUSD(avgTotal) + '  (' + fmtTHB(avgTotal*fx) + ')';
+    document.getElementById('coworkTotalOut').textContent =
+      fmtUSD(totalLow) + ' – ' + fmtUSD(totalHigh) + '  (' + fmtTHB(totalLow*fx) + ' – ' + fmtTHB(totalHigh*fx) + ')';
+  }
+
+  // ---------- Copilot Studio: feature rate table ----------
+  const studioFeatures = [
+    {id:'classic',        name:'Classic answer',               desc:'คำตอบสำเร็จรูปที่ตั้งไว้ล่วงหน้า',          unit:'ต่อคำตอบ',          rate:1,    divisor:1,    qtyDefault:1000,   qtyUnit:'คำตอบ/เดือน'},
+    {id:'generative',     name:'Generative answer',            desc:'คำตอบที่ AI สร้างแบบ dynamic',              unit:'ต่อคำตอบ',          rate:2,    divisor:1,    qtyDefault:500,    qtyUnit:'คำตอบ/เดือน'},
+    {id:'action',         name:'Agent action',                 desc:'Trigger / reasoning / topic transition',    unit:'ต่อ action',        rate:5,    divisor:1,    qtyDefault:200,    qtyUnit:'actions/เดือน'},
+    {id:'grounding',      name:'Tenant graph grounding',       desc:'RAG จาก Microsoft Graph ของ tenant',        unit:'ต่อข้อความ',        rate:10,   divisor:1,    qtyDefault:100,    qtyUnit:'ข้อความ/เดือน'},
+    {id:'flow',           name:'Agent flow actions',           desc:'ขั้นตอนอัตโนมัติใน agent flow',             unit:'ต่อ 100 actions',   rate:13,   divisor:100,  qtyDefault:1000,   qtyUnit:'actions/เดือน'},
+    {id:'ai_basic',       name:'AI tool – Basic',              desc:'งานพื้นฐาน เช่น แยกหมวดหมู่ ตอบคำถามสั้น',  unit:'ต่อ 1,000 tokens',  rate:0.1,  divisor:1000, taskBased:true, tokensPerTask:800,  qtyDefault:250, qtyUnit:'งาน/เดือน'},
+    {id:'ai_standard',    name:'AI tool – Standard',           desc:'งานระดับกลาง เช่น สรุป/วิเคราะห์เอกสาร',    unit:'ต่อ 1,000 tokens',  rate:1.5,  divisor:1000, taskBased:true, tokensPerTask:2000, qtyDefault:50,  qtyUnit:'งาน/เดือน'},
+    {id:'ai_premium',     name:'AI tool – Premium (reasoning)',desc:'งาน reasoning ขั้นสูง หลายขั้นตอน',         unit:'ต่อ 1,000 tokens',  rate:10,   divisor:1000, taskBased:true, tokensPerTask:5000, qtyDefault:10,  qtyUnit:'งาน/เดือน'},
+    {id:'content',        name:'Content processing',           desc:'ประมวลผลเอกสาร / รูปภาพ',                   unit:'ต่อหน้า',           rate:8,    divisor:1,    qtyDefault:100,    qtyUnit:'หน้า/เดือน'},
+    {id:'voice_basic',    name:'Voice – Basic',                desc:'Voice แบบ classic orchestration',           unit:'ต่อนาที',           rate:10,   divisor:1,    qtyDefault:0,      qtyUnit:'นาที/เดือน'},
+    {id:'voice_standard', name:'Voice – Standard',             desc:'Voice แบบ generative orchestration',        unit:'ต่อนาที',           rate:35,   divisor:1,    qtyDefault:0,      qtyUnit:'นาที/เดือน'},
+    {id:'voice_premium',  name:'Voice – Premium',              desc:'Voice แบบ real-time',                       unit:'ต่อนาที',           rate:75,   divisor:1,    qtyDefault:0,      qtyUnit:'นาที/เดือน'}
+  ];
+
+  function buildStudioTable(){
+    const tbody = document.getElementById('studioTableBody');
+    tbody.innerHTML = studioFeatures.map(f => {
+      const qtyCell = f.taskBased ? `
+          <input type="number" class="qty-input" id="qty_${f.id}" value="${f.qtyDefault}" min="0">
+          <div class="feat-desc">${f.qtyUnit}</div>
+          <div class="assumption-row">
+            <span>สมมติฐาน</span>
+            <input type="number" class="tpt-input" id="tpt_${f.id}" value="${f.tokensPerTask}" min="0">
+            <span>tokens/งาน</span>
+          </div>
+        ` : `
+          <input type="number" class="qty-input" id="qty_${f.id}" value="${f.qtyDefault}" min="0">
+          <div class="feat-desc">${f.qtyUnit}</div>
+        `;
+      const tokensCell = f.taskBased ? `<span id="tokens_${f.id}">–</span>` : `<span>–</span>`;
+      return `
+      <tr>
+        <td>
+          <div class="feat-name">${f.name}</div>
+          <div class="feat-desc">${f.desc}</div>
+        </td>
+        <td class="feat-unit">${f.unit}</td>
+        <td class="num">${f.rate}</td>
+        <td>${qtyCell}</td>
+        <td class="num">${tokensCell}</td>
+        <td class="num" id="credits_${f.id}">–</td>
+        <td class="num" id="usd_${f.id}">–</td>
+        <td class="num" id="thb_${f.id}">–</td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  function resetStudio(){
+    document.getElementById('studioLicensed').checked = false;
+    document.getElementById('studioPurchase').value = 'payg';
+    document.getElementById('studioCustomPrice').value = 0.01;
+    document.getElementById('customPriceField').style.display = 'none';
+    studioFeatures.forEach(f=>{
+      document.getElementById('qty_'+f.id).value = f.qtyDefault;
+      if(f.taskBased){
+        document.getElementById('tpt_'+f.id).value = f.tokensPerTask;
+      }
+    });
+    renderAll();
+  }
+
+  function clearStudioQuantities(){
+    studioFeatures.forEach(f=>{
+      document.getElementById('qty_'+f.id).value = 0;
+    });
+    renderAll();
+  }
+
+  function getCreditPrice(){
+    const method = document.getElementById('studioPurchase').value;
+    if(method === 'payg') return 0.01;
+    if(method === 'prepaid') return 0.008;
+    return parseFloat(document.getElementById('studioCustomPrice').value) || 0;
+  }
+
+  function calcStudio(){
+    const fx = getFx();
+    const licensed = document.getElementById('studioLicensed').checked;
+    const creditPrice = getCreditPrice();
+
+    document.getElementById('customPriceField').style.display =
+      document.getElementById('studioPurchase').value === 'custom' ? 'flex' : 'none';
+    document.getElementById('studioFreeNote').style.display = licensed ? 'block' : 'none';
+    document.getElementById('studioCreditPriceOut').value = '$' + creditPrice.toFixed(4) + ' / credit';
+
+    let totalCredits = 0, totalUSD = 0;
+    studioFeatures.forEach(f=>{
+      const qtyEl = document.getElementById('qty_'+f.id);
+      const qty = parseFloat(qtyEl.value) || 0;
+      let baseAmount = qty;
+      if(f.taskBased){
+        const tpt = parseFloat(document.getElementById('tpt_'+f.id).value) || 0;
+        const tokens = qty * tpt;
+        baseAmount = tokens;
+        document.getElementById('tokens_'+f.id).textContent = fmtNum(tokens,0);
+      }
+      const credits = licensed ? 0 : (baseAmount / f.divisor) * f.rate;
+      const usd = credits * creditPrice;
+      const thb = usd * fx;
+      totalCredits += credits;
+      totalUSD += usd;
+
+      document.getElementById('credits_'+f.id).textContent = fmtNum(credits,1);
+      document.getElementById('usd_'+f.id).textContent = fmtUSD(usd);
+      document.getElementById('thb_'+f.id).textContent = fmtTHB(thb);
+    });
+
+    document.getElementById('studioTotalCredits').textContent = fmtNum(totalCredits,1);
+    document.getElementById('studioTotalUSD').textContent = fmtUSD(totalUSD);
+    document.getElementById('studioTotalTHB').textContent = fmtTHB(totalUSD*fx);
+  }
+
+  function renderAll(){
+    calcCowork();
+    calcStudio();
+  }
+
+  // ---------- Init ----------
+  buildStudioTable();
+  document.addEventListener('input', renderAll);
+  document.addEventListener('change', renderAll);
+  renderAll();
+</script>
+</body>
+</html>
